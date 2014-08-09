@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="../public/bootstrap.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    </style>
+  </head>
+  <body>
+    <%this_week = data["this_week"]%>
+    <h1><%=data["meta"]["user"]%> / <%=data["meta"]["repo"]%></h1>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+          <p>
+          Lask week, <%=this_week["opened"]%> issues were opened, <%=this_week["opened_and_closed"]%> of which have since been closed.
+          Of the <%=this_week["opened"] - this_week["opened_and_closed"]%> still open, <%=data["yesterday"]["opened"]%> were created in the last 24 hours.
+          <%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%> older issues were<%=older == 0 ? "" : " also"%> closed last week, leaving <%=data["now"]["open"]%> still open.
+          </p>
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+  </body>
+</html>
