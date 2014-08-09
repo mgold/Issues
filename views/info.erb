@@ -1,0 +1,4 @@
+<%this_week = data["this_week"]%>
+Lask week, <%=this_week["opened"]%> issues were opened, <%=this_week["opened_and_closed"]%> of which have since been closed.
+Of the <%=this_week["opened"] - this_week["opened_and_closed"]%> still open, <%=data["yesterday"]["opened"]%> were created in the last 24 hours.
+<%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%> older issues were<%=older == 0 ? "" : " also"%> closed last week, leaving <%=data["now"]["open"]%> still open.
