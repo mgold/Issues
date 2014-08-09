@@ -4,10 +4,14 @@ require 'json'
 
 def analyze(target)
   user, repo = target.split("/")
-  filename = "data/raw/#{user}_#{repo}.marshal"
-  marshalled = File.open(filename, "r").read
-  issues = Marshal.load(marshalled)
+  dir = "data/raw/#{user}/#{repo}"
+  filename = Dir.entries(dir).reject{|f| [".", ".."].include? f}.sort.last
+  return if filename.nil?
+  file_handle = File.open("#{dir}/#{filename}", "r")
+  issues = Marshal.load(file_handle)
+  file_handle.close
 
+  updated_at = filename.chomp(File.extname(filename)).to_i
   now = Time.now.utc
   one_week_ago  = now - 60*60*24*7
   two_weeks_ago = now - 60*60*24*7*2
@@ -26,7 +30,7 @@ def analyze(target)
                       closed: closed_this_week.length},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
-          meta: {user: user, repo: repo}
+          meta: {user: user, repo: repo, updated: updated_at}
          }
   File.open("data/srv/#{user}_#{repo}.json", 'w'){|f| f.write data.to_json}
 end
