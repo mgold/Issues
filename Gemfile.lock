@@ -9,6 +9,8 @@ GEM
     columnize (0.3.6)
     daemons (1.1.9)
     debugger-linecache (1.2.0)
+    descriptive_statistics (1.1.5)
+    duration (0.1.0)
     eventmachine (1.0.3)
     faraday (0.9.0)
       multipart-post (>= 1.2, < 3)
@@ -45,6 +47,8 @@ PLATFORMS
 
 DEPENDENCIES
   byebug (~> 1.1.1)
+  descriptive_statistics (= 1.1.5)
+  duration (~> 0.1.0)
   octokit (~> 3.0)
   pry
   pry-byebug

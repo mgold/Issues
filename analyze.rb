@@ -1,6 +1,7 @@
 require 'sawyer'
 load 'sawyer_monkeypatch.rb'
 require 'json'
+require 'descriptive_statistics'
 
 def analyze(target)
   user, repo = target.split("/")
@@ -24,10 +25,27 @@ def analyze(target)
   opened_and_closed_this_week = opened_this_week.select{|i| !i.closed_at.nil?}
   i = issues.rindex{|i| i.created_at < last_24_hrs}
   opened_yesterday = issues[i+1..-1]
+  closed_last_week = issues.select{|i| i.closed_at && i.closed_at < one_week_ago && i.closed_at > two_weeks_ago}
+
+  closed_this_week_durations = closed_this_week.map{|i| duration(i)}.sort!
+  ctwd_percentiles = { p25: closed_this_week_durations.percentile(25),
+                       p50: closed_this_week_durations.median,
+                       p75: closed_this_week_durations.percentile(75),
+                       p90: closed_this_week_durations.percentile(90)
+                     }
+
+  closed_last_week_durations = closed_last_week.map{|i| duration(i)}.sort!
+  clwd_percentiles = { p25: closed_last_week_durations.percentile(25),
+                       p50: closed_last_week_durations.median,
+                       p75: closed_last_week_durations.percentile(75),
+                       p90: closed_last_week_durations.percentile(90)
+                     }
 
   data = {this_week: {opened: opened_this_week.length,
                       opened_and_closed: opened_and_closed_this_week.length,
-                      closed: closed_this_week.length},
+                      closed: closed_this_week.length,
+                      duration_percentiles: ctwd_percentiles},
+          last_week: {duration_percentiles: clwd_percentiles},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
           meta: {user: user, repo: repo, updated: updated_at}

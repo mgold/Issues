@@ -1,13 +1,34 @@
+<%
+  #TODO: spin off into separate helper file, add tests
+  require 'duration'
+  def render_percentile(data,timeframe, percentile)
+    duration = Duration.new(data[timeframe]["duration_percentiles"]["p#{percentile}"])
+    is_smallest = data.min_by{|k,v| v["duration_percentiles"]["p#{percentile}"] rescue 9999.week}.first == timeframe
+    "<td><p#{' class="best"' if is_smallest}>#{format_duration(duration)}</p></td>"
+  end
+  def format_duration(duration)
+    s = ""
+    s += "#{duration.weeks}w" unless duration < 1.week
+    s += "#{duration.days}d" unless duration > 4.week || duration < 1.day
+    s += "#{duration.hours}h" unless duration > 1.week || duration < 1.hour
+    s += "#{duration.minutes}m" unless duration > 6.hours || duration < 1.minute
+    s += "#{duration.seconds}s" unless duration > 10.minutes
+    s
+  end
+  this_week = data["this_week"]
+%>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <link rel="stylesheet" type="text/css" href="../public/bootstrap.min.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+      .table .best{
+        font-weight: bold
+      }
     </style>
   </head>
   <body>
-    <%this_week = data["this_week"]%>
     <h1><%=data["meta"]["user"]%> / <%=data["meta"]["repo"]%></h1>
     <div class="container-fluid">
       <div class="row">
@@ -15,11 +36,36 @@
         <div class="col-md-8">
           <p>
           Lask week, <%=this_week["opened"]%> issues were opened, <%=this_week["opened_and_closed"]%> of which have since been closed.
-          Of the <%=this_week["opened"] - this_week["opened_and_closed"]%> still open, <%=data["yesterday"]["opened"]%> were created in the last 24 hours.
-          <%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%> older issues were<%=older == 0 ? "" : " also"%> closed last week, leaving <%=data["now"]["open"]%> still open.
+          Of the <%=this_week["opened"] - this_week["opened_and_closed"]%> still open, <%=data["yesterday"]["opened"]%> <%=data["yesterday"]["opened"] == 1 ? "was" : "were"%> created in the last 24 hours.
+          <%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%> older issues were<%=" also" unless older == 0%> closed last week, leaving <%=data["now"]["open"]%> still open.
           </p>
         </div>
         <div class="col-md-2"></div>
+      </div>
+      <div class="row">
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Closed / Percentile</th>
+              <th>25</th>
+              <th>50 (Median)</th>
+              <th>75</th>
+              <th>90</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% %w(this_week last_week).each do |t|%>
+              <%="<tr>"%>
+                <%="<td>#{t.sub('_', ' ').capitalize}</td>"%>
+                <%[25, 50, 75, 90].each do |i|%>
+                  <%=render_percentile(data, t, i)%>
+                <%end%>
+              <%="</tr>"%>
+            <%end%>
+          </tbody>
+        </table>
+
       </div>
     </div>
   </body>
