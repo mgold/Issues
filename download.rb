@@ -45,6 +45,18 @@ def download(target)
   end
 end
 
+
 if __FILE__ == $0
-  download(ARGV[0]) if ARGV[0]
+  if ARGV.empty?
+    Dir.foreach("data/raw") do |user|
+      next if user.start_with? '.'
+      Dir.foreach("data/raw/#{user}") do |repo|
+        next if repo.start_with? '.'
+        target = "#{user}/#{repo}"
+        download target
+      end
+    end
+  else
+    ARGV.each {|target| download target}
+  end
 end
