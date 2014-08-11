@@ -8,12 +8,12 @@
   end
   def format_duration(duration)
     s = ""
-    s += "#{duration.weeks}w" unless duration < 1.week
-    s += "#{duration.days}d" unless duration > 4.week || duration < 1.day
-    s += "#{duration.hours}h" unless duration > 1.week || duration < 1.hour
-    s += "#{duration.minutes}m" unless duration > 6.hours || duration < 1.minute
+    s += "#{duration.weeks}w " unless duration < 1.week
+    s += "#{duration.days}d " unless duration > 4.week || duration < 1.day
+    s += "#{duration.hours}h " unless duration > 1.week || duration < 1.hour
+    s += "#{duration.minutes}m " unless duration > 6.hours || duration < 1.minute
     s += "#{duration.seconds}s" unless duration > 10.minutes
-    s
+    s.strip
   end
   this_week = data["this_week"]
 %>
@@ -23,7 +23,7 @@
     <link rel="stylesheet" type="text/css" href="../public/bootstrap.min.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-      .table .best{
+      table.table p.best{
         font-weight: bold
       }
     </style>
@@ -47,7 +47,7 @@
         <table class="table">
           <thead>
             <tr>
-              <th>Closed / Percentile</th>
+              <th>Closed during</th>
               <th>25</th>
               <th>50 (Median)</th>
               <th>75</th>
@@ -55,10 +55,10 @@
             </tr>
           </thead>
           <tbody>
-            <% %w(this_week last_week).each do |t|%>
+            <% %w(this_week last_week last_month).each do |t|%>
               <%="<tr>"%>
-                <%="<td>#{t.sub('_', ' ').capitalize}</td>"%>
-                <%[25, 50, 75, 90].each do |i|%>
+                <%="<td>#{data[t]["name"] || t.sub('_', ' ').capitalize}</td>"%>
+                <%data["meta"]["percentiles"].each do |i|%>
                   <%=render_percentile(data, t, i)%>
                 <%end%>
               <%="</tr>"%>

@@ -26,29 +26,23 @@ def analyze(target)
   i = issues.rindex{|i| i.created_at < last_24_hrs}
   opened_yesterday = issues[i+1..-1]
   closed_last_week = issues.select{|i| i.closed_at && i.closed_at < one_week_ago && i.closed_at > two_weeks_ago}
-
-  closed_this_week_durations = closed_this_week.map{|i| duration(i)}.sort!
-  ctwd_percentiles = { p25: closed_this_week_durations.percentile(25),
-                       p50: closed_this_week_durations.median,
-                       p75: closed_this_week_durations.percentile(75),
-                       p90: closed_this_week_durations.percentile(90)
-                     }
-
-  closed_last_week_durations = closed_last_week.map{|i| duration(i)}.sort!
-  clwd_percentiles = { p25: closed_last_week_durations.percentile(25),
-                       p50: closed_last_week_durations.median,
-                       p75: closed_last_week_durations.percentile(75),
-                       p90: closed_last_week_durations.percentile(90)
-                     }
+  closed_last_month = issues.select do |i|
+    ca = i.closed_at
+    ca && (now.month == 1 ? ca.month == 12 && ca.year == now.year-1 : ca.month == now.month && ca.year == now.year)
+  end
 
   data = {this_week: {opened: opened_this_week.length,
                       opened_and_closed: opened_and_closed_this_week.length,
                       closed: closed_this_week.length,
-                      duration_percentiles: ctwd_percentiles},
-          last_week: {duration_percentiles: clwd_percentiles},
+                      duration_percentiles: duration_percentiles(closed_this_week),
+                      name: "Last 7 days"},
+          last_week: {duration_percentiles: duration_percentiles(closed_last_week),
+                      name: "Week before that"},
+          last_month:{duration_percentiles: duration_percentiles(closed_last_month),
+                      name: Date::MONTHNAMES[now.month-1] || "December"},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
-          meta: {user: user, repo: repo, updated: updated_at}
+          meta: {user: user, repo: repo, updated: updated_at, percentiles:[25,50,75,90]}
          }
   File.open("data/srv/#{user}_#{repo}.json", 'w'){|f| f.write data.to_json}
 end
@@ -57,7 +51,14 @@ def duration(an_issue)
   (an_issue.closed_at - an_issue.created_at).to_i rescue nil
 end
 
-
+def duration_percentiles(issue_subset)
+  durations = issue_subset.map{|i| duration(i)}.sort!
+  { p25: durations.percentile(25),
+    p50: durations.median,
+    p75: durations.percentile(75),
+    p90: durations.percentile(90)
+  }
+end
 
 def cur_open_sort(issues)
   opened_at = issues.sort_by {|issue| issue.created_at}
