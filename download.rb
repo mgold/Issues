@@ -59,4 +59,5 @@ if __FILE__ == $0
   else
     ARGV.each {|target| download target}
   end
+  puts "#{Octokit.ratelimit.remaining} remaining GitHub API queries"
 end
