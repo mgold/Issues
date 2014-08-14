@@ -6,8 +6,8 @@ require 'duration'
 require_relative 'issue'
 
 def analyze(target)
-  user, owner = target.split("/")
-  dir = "data/raw/#{user}/#{owner}"
+  owner, repo = target.split("/")
+  dir = "data/raw/#{owner}/#{repo}"
   filename = Dir.entries(dir).reject{|f| [".", ".."].include? f}.sort.last
   return if filename.nil?
   file_handle = File.open("#{dir}/#{filename}", "r")
@@ -46,9 +46,9 @@ def analyze(target)
                       name: Date::MONTHNAMES[now.month-1] || "December"},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
-          meta: {user: user, owner: owner, updated: updated_at, percentiles:[25,50,75,90]}
+          meta: {owner: owner, repo: repo, updated: updated_at, percentiles:[25,50,75,90]}
          }
-  File.open("public/data/#{user}_#{owner}.json", 'w'){|f| f.write data.to_json}
+  File.open("public/data/#{owner}_#{repo}.json", 'w'){|f| f.write data.to_json}
 end
 
 def duration_percentiles(issue_subset)
@@ -79,11 +79,11 @@ end
 
 if __FILE__ == $0
   if ARGV.empty?
-    Dir.foreach("data/raw") do |user|
-      next if user.start_with? '.'
-      Dir.foreach("data/raw/#{user}") do |owner|
-        next if owner.start_with? '.'
-        target = "#{user}/#{owner}"
+    Dir.foreach("data/raw") do |owner|
+      next if owner.start_with? '.'
+      Dir.foreach("data/raw/#{owner}") do |repo|
+        next if repo.start_with? '.'
+        target = "#{owner}/#{repo}"
         puts "Analyzing #{target}..."
         analyze target
       end
