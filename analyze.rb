@@ -25,7 +25,6 @@ def analyze(target)
   else
     last_month_start = Time.local(now.year, now.month-1)
     last_month_end = Time.local(now.year, now.month) -1
-    puts last_month_start, last_month_end
   end
 
   still_open = issues.select{|i| i.open?}
