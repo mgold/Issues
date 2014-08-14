@@ -1,58 +1,66 @@
-load 'octokit_auth.rb'
 require 'time'
 require 'fileutils'
+require 'duration'
+
+require_relative 'octokit_auth'
+require_relative 'issue'
 
 def download(target)
-  user, repo = target.split("/")
-  dir = "data/raw/#{user}/#{repo}"
+  owner, repo = target.split("/")
+  dir = "data/raw/#{owner}/#{repo}"
   FileUtils.mkdir_p dir
   files = Dir.entries(dir).reject{|f| [".", ".."].include? f}
   timestamps = files.map{|f| f.chomp(File.extname(f)).to_i }
   most_recent = Time.at(timestamps.max) rescue nil
   now = Time.now
-
-  Octokit.auto_paginate = true
-  cache_persistence = 6*60*60 # six hours
-  filename = "#{dir}/#{now.to_i}.marshal"
-  opts = {state: "all", sort: "created", direction: "asc"}
-
-  if most_recent.nil?
-    puts "Downloading all issues for #{target}..."
-    issues = Octokit.issues(target, opts)
-    puts "Marshalling all issues for #{target}..."
-    File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
-  elsif most_recent + cache_persistence >= now
+  cache_persistence = 3.hours
+  if most_recent && most_recent + cache_persistence >= now
     puts "Already downloaded #{target} recently!"
-  else
-    puts "Downloading recent issues for #{target}..."
-    opts.merge! since: most_recent.utc.iso8601
-    additions = Octokit.issues(target, opts)
-    if additions.size == 0
-      puts "No updates for #{target}."
-      return
-    end
-    additions_hash = Hash[additions.map{|i| [i.number, i]}]
-    puts "Downloaded #{additions_hash.size} updated issues for #{target}."
-
-    puts "Unmarshalling old issues for #{target}."
-    file_handle = File.open("#{dir}/#{most_recent.to_i}.marshal", "r")
-    previous = Marshal.load(file_handle)
-    file_handle.close
-
-    puts "Marshalling updated issues for #{target}..."
-    previous.map!{|i| additions_hash[i.attrs[:number]] || i}
-    File.open(filename, 'w') {|f| f.write(Marshal.dump(previous)) }
+    #return
   end
+
+  opts = {state: "all", per_page: 100}
+  if most_recent
+    puts "Unmarshalling old issues for #{target}..."
+    file_handle = File.open("#{dir}/#{most_recent.to_i}.marshal", "r")
+    issues = Marshal.load(file_handle)
+    file_handle.close
+    opts.merge! since: most_recent.utc.iso8601
+    puts "Downloading recent issues for #{target}..."
+  else
+    issues = {}
+    puts "Downloading all issues for #{target}..."
+  end
+
+  old_issue_count = issues.length
+  new_issue_count = 0
+  additions = Octokit.issues(target, opts)
+  last_response = Octokit.last_response
+  loop do
+    new_issue_count += additions.length
+    additions.map!{|sawyer_obj| Issue.new owner, repo, sawyer_obj}
+    additions.each do |issue|
+      issues[issue.number] = issue
+    end
+    break if last_response.rels[:next].nil?
+    last_response = last_response.rels[:next].get
+    additions = last_response.data
+  end
+  puts "#{target}: #{old_issue_count} old, #{new_issue_count} new or updated, #{issues.size} total."
+
+  puts "Marshalling updated issues for #{target}..."
+  filename = "#{dir}/#{now.to_i}.marshal"
+  File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
 end
 
 
 if __FILE__ == $0
   if ARGV.empty?
-    Dir.foreach("data/raw") do |user|
-      next if user.start_with? '.'
-      Dir.foreach("data/raw/#{user}") do |repo|
+    Dir.foreach("data/raw") do |owner|
+      next if owner.start_with? '.'
+      Dir.foreach("data/raw/#{owner}") do |repo|
         next if repo.start_with? '.'
-        target = "#{user}/#{repo}"
+        target = "#{owner}/#{repo}"
         download target
       end
     end
