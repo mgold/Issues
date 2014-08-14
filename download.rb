@@ -14,22 +14,18 @@ def download(target)
   most_recent = Time.at(timestamps.max) rescue nil
   now = Time.now
   cache_persistence = 3.hours
-  if most_recent && most_recent + cache_persistence >= now
-    puts "Already downloaded #{target} recently!"
-    #return
-  end
 
   opts = {state: "all", per_page: 100}
   if most_recent
-    puts "Unmarshalling old issues for #{target}..."
+    $stderr.puts "Unmarshalling old issues for #{target}..."
     file_handle = File.open("#{dir}/#{most_recent.to_i}.marshal", "r")
     issues = Marshal.load(file_handle)
     file_handle.close
     opts.merge! since: most_recent.utc.iso8601
-    puts "Downloading recent issues for #{target}..."
+    $stderr.puts "Downloading recent issues for #{target}..."
   else
     issues = {}
-    puts "Downloading all issues for #{target}..."
+    $stderr.puts "Downloading all issues for #{target}..."
   end
 
   old_issue_count = issues.length
@@ -46,9 +42,10 @@ def download(target)
     last_response = last_response.rels[:next].get
     additions = last_response.data
   end
-  puts "#{target}: #{old_issue_count} old, #{new_issue_count} new or updated, #{issues.size} total."
+  $stderr.puts "#{target}: #{old_issue_count} old, #{new_issue_count} new or updated, #{issues.size} total."
+  print target unless new_issue_count == 0
 
-  puts "Marshalling updated issues for #{target}..."
+  $stderr.puts "Marshalling updated issues for #{target}..."
   filename = "#{dir}/#{now.to_i}.marshal"
   File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
 end
@@ -67,5 +64,5 @@ if __FILE__ == $0
   else
     ARGV.each {|target| download target}
   end
-  puts "#{Octokit.ratelimit.remaining} remaining GitHub API queries"
+  $stderr.puts "#{Octokit.ratelimit.remaining} remaining GitHub API queries"
 end

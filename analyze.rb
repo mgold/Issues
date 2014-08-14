@@ -84,13 +84,13 @@ if __FILE__ == $0
       Dir.foreach("data/raw/#{owner}") do |repo|
         next if repo.start_with? '.'
         target = "#{owner}/#{repo}"
-        puts "Analyzing #{target}..."
+        $stderr.puts "Analyzing #{target}..."
         analyze target
       end
     end
   else
     ARGV.each do |target|
-      puts "Analyzing #{target}..."
+      $stderr.puts "Analyzing #{target}..."
       analyze target
     end
   end
