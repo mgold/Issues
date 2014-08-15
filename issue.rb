@@ -10,7 +10,6 @@ class Issue
   attr_reader :opened_at, :closed_at
 
   def initialize(owner, repo, sawyer_obj)
-    puts "Already an issue!" if sawyer_obj.class == Issue
     @owner = owner.to_sym
     @repo = repo.to_sym
     @number = sawyer_obj.number

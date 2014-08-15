@@ -1,5 +1,7 @@
 require 'date'
 require 'json'
+require 'csv'
+
 require 'descriptive_statistics'
 require 'duration'
 
@@ -49,6 +51,28 @@ def analyze(target)
           meta: {owner: owner, repo: repo, updated: updated_at, percentiles:[25,50,75,90]}
          }
   File.open("public/data/#{owner}_#{repo}.json", 'w'){|f| f.write data.to_json}
+
+  CSV.open("public/data/#{owner}_#{repo}.csv", "w") do |csv|
+    csv << ["timestamp", "opening", "count"]
+    cur_open_sort(issues).each {|row| csv << row}
+  end
+end
+
+def cur_open_sort(issues)
+  by_open_time = issues.sort_by {|issue| issue.opened_at}
+  by_close_time = issues.select{|issue| issue.closed?}.sort_by {|issue| issue.closed_at}
+  cur_open = 0
+  events = []
+  until by_open_time.empty? && by_close_time.empty?
+    if (by_open_time.first.opened_at < by_close_time.first.closed_at rescue by_close_time.empty?)
+      issue = by_open_time.shift
+      events << [issue.opened_at.to_i, true, cur_open += 1]
+    else
+      issue = by_close_time.shift
+      events << [issue.closed_at.to_i, false, cur_open -= 1]
+    end
+  end
+  events
 end
 
 def duration_percentiles(issue_subset)
@@ -58,23 +82,6 @@ def duration_percentiles(issue_subset)
     p75: durations.percentile(75),
     p90: durations.percentile(90)
   }
-end
-
-def cur_open_sort(issues)
-  opened_at = issues.sort_by {|issue| issue.created_at}
-  closed_at = closed.reject{|issue| issue.closed_at.nil?}.sort_by {|issue| issue.closed_at}
-  cur_open = 0
-  events = []
-  until opened_at.empty? && closed_at.empty?
-    if (opened_at.first.created_at < closed_at.first.closed_at rescue closed_at.empty?)
-      item = opened_at.shift
-      events << [item, cur_open += 1, true]
-    else
-      item = closed_at.shift
-      events << [item, cur_open -= 1, false]
-    end
-  end
-  events
 end
 
 if __FILE__ == $0

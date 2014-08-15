@@ -7,6 +7,7 @@
     "<td><p#{' class="best"' if is_smallest}>#{format_duration(duration)}</p></td>"
   end
   def format_duration(duration)
+    return "—" if duration == 0
     s = ""
     s += "#{duration.weeks}w " unless duration < 1.week
     s += "#{duration.days}d " unless duration > 4.week || duration < 1.day
