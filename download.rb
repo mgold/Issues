@@ -29,11 +29,11 @@ def download(target)
   end
 
   old_issue_count = issues.length
-  new_issue_count = 0
+  new_or_updated_issue_count = 0
   additions = Octokit.issues(target, opts)
   last_response = Octokit.last_response
   loop do
-    new_issue_count += additions.length
+    new_or_updated_issue_count += additions.length
     additions.map!{|sawyer_obj| Issue.new owner, repo, sawyer_obj}
     additions.each do |issue|
       issues[issue.number] = issue
@@ -42,14 +42,17 @@ def download(target)
     last_response = last_response.rels[:next].get
     additions = last_response.data
   end
-  $stderr.puts "#{target}: #{old_issue_count} old, #{new_issue_count} new or updated, #{issues.size} total."
-  print target unless new_issue_count == 0
+  new_issue_count = issues.size - old_issue_count
+  updated_issue_count = new_or_updated_issue_count - new_issue_count
+  $stderr.puts "#{target}: #{old_issue_count} old, #{new_issue_count} new, #{updated_issue_count} updated, #{issues.size} total."
 
-  $stderr.puts "Marshalling updated issues for #{target}..."
-  filename = "#{dir}/#{now.to_i}.marshal"
-  File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
+  unless new_or_updated_issue_count == 0
+    print "#{target} "
+    $stderr.puts "Marshalling updated issues for #{target}..."
+    filename = "#{dir}/#{now.to_i}.marshal"
+    File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
+  end
 end
-
 
 if __FILE__ == $0
   if ARGV.empty?
