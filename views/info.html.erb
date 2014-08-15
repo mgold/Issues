@@ -28,6 +28,10 @@
         font-weight: bold
       }
     </style>
+    <link rel="stylesheet" type="text/css" href="nv.d3.min.css" />
+    <script src="d3.v3.min.js"></script>
+    <script src="queue.v1.min.js"></script>
+    <script src="nv.d3.min.js"></script>
   </head>
   <body>
     <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
@@ -69,5 +73,46 @@
 
       </div>
     </div>
+    <div id="line_plot"><svg></svg></div>
   </body>
 </html>
+<script>
+  d3.csv(<%="data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}.csv"%>,
+  //function(d){return {x: +d.timestamp, y: +d.open_issues, shape: 'circle', open: d.open == "true", number: +d.number, title: d.title}},
+  function(d){return {x: +d.timestamp, y: +d.count, shape: 'circle', open: d.opening == "true", number: +d.number, title: d.title}},
+  function(error, data) {
+    if(error){return console.log(error);}
+
+    var grouped = [{key: "opened", values: []}, {key: "closed", values: []}]
+    for(var i = 0; i < data.length; i++){
+      var item = data[i]
+      var idx = item.open ? 0 : 1
+      grouped[idx].values.push(item)
+    }
+    nv.addGraph(function() {
+      var chart = nv.models.scatterChart()
+      .transitionDuration(350)
+      .color(d3.scale.category10().range());
+
+      //Configure how the tooltip looks.
+      chart.tooltipContent(function(_,_,_,obj) {
+        var point = obj.point
+        return '<h3>' + point.number + ': ' + point.title + '</h3>';
+      });
+
+      //Axis settings
+      chart.xAxis.tickFormat(function (t){return d3.time.format('%x')(new Date(1000*t))})
+      chart.yAxis.tickFormat(d3.format('2'));
+
+      d3.select('div#line_plot svg')
+      .datum(grouped)
+      .call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      return chart;
+    });
+
+  });
+
+</script>

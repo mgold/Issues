@@ -53,7 +53,7 @@ def analyze(target)
   File.open("public/data/#{owner}_#{repo}.json", 'w'){|f| f.write data.to_json}
 
   CSV.open("public/data/#{owner}_#{repo}.csv", "w") do |csv|
-    csv << ["timestamp", "opening", "count"]
+    csv << ["timestamp", "opening", "count", "number", "title"]
     cur_open_sort(issues).each {|row| csv << row}
   end
 end
@@ -66,10 +66,10 @@ def cur_open_sort(issues)
   until by_open_time.empty? && by_close_time.empty?
     if (by_open_time.first.opened_at < by_close_time.first.closed_at rescue by_close_time.empty?)
       issue = by_open_time.shift
-      events << [issue.opened_at.to_i, true, cur_open += 1]
+      events << [issue.opened_at.to_i, true, cur_open += 1, issue.number, issue.title]
     else
       issue = by_close_time.shift
-      events << [issue.closed_at.to_i, false, cur_open -= 1]
+      events << [issue.closed_at.to_i, false, cur_open -= 1, issue.number, issue.title]
     end
   end
   events
