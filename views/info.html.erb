@@ -28,10 +28,10 @@
         font-weight: bold
       }
     </style>
-    <link rel="stylesheet" type="text/css" href="nv.d3.min.css" />
-    <script src="d3.v3.min.js"></script>
-    <script src="queue.v1.min.js"></script>
-    <script src="nv.d3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/ghdata/nv.d3.min.css" />
+    <script src="/ghdata/d3.v3.min.js"></script>
+    <script src="/ghdata/queue.v1.min.js"></script>
+    <script src="/ghdata/nv.d3.min.js"></script>
   </head>
   <body>
     <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
@@ -77,12 +77,12 @@
   </body>
 </html>
 <script>
-  d3.csv(<%="data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}.csv"%>,
-  //function(d){return {x: +d.timestamp, y: +d.open_issues, shape: 'circle', open: d.open == "true", number: +d.number, title: d.title}},
+  d3.csv(<%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}.csv\""%>,
   function(d){return {x: +d.timestamp, y: +d.count, shape: 'circle', open: d.opening == "true", number: +d.number, title: d.title}},
   function(error, data) {
     if(error){return console.log(error);}
 
+    var width = 1000, height = 300;
     var grouped = [{key: "opened", values: []}, {key: "closed", values: []}]
     for(var i = 0; i < data.length; i++){
       var item = data[i]
@@ -92,7 +92,8 @@
     nv.addGraph(function() {
       var chart = nv.models.scatterChart()
       .transitionDuration(350)
-      .color(d3.scale.category10().range());
+      .color(d3.scale.category10().range())
+      .width(width).height(height);
 
       //Configure how the tooltip looks.
       chart.tooltipContent(function(_,_,_,obj) {
@@ -106,7 +107,8 @@
 
       d3.select('div#line_plot svg')
       .datum(grouped)
-      .call(chart);
+      .call(chart)
+      .style({ 'width': width, 'height': height });
 
       nv.utils.windowResize(chart.update);
 
