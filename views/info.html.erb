@@ -57,6 +57,11 @@
       shape-rendering: crispEdges;
     }
 
+    svg line.extra{
+      stroke: #F00;
+      stroke-opacity: 1;
+    }
+
     input.vertical { -webkit-appearance: slider-vertical; writing-mode: bt-lr;
      float:left;
      width: 0px;
@@ -134,10 +139,17 @@
   var svg1 = d3.select("div#line_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
+      .on("mouseout", svgClear)
 
   var svg2 = d3.select("div#bar_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
+      .on("mouseout", svgClear)
+
+  function svgClear(){
+    svg1.selectAll(".extra").remove()
+    svg2.selectAll(".extra").remove()
+  }
 
   queue()
     .defer(d3.csv,
@@ -193,6 +205,7 @@
 
     function redrawBars(maxY){
       if (!durations){return}
+      svgClear();
       y.domain([0, maxY]);
       svg2.select("g.y.axis")
         .call(yAxis);
@@ -208,6 +221,14 @@
         .attr("x2", function(d) { return x(d.timestamp) })
         .attr("y1", function(d) { return y(d.duration) })
         .attr("y2", y(0))
+        .on("mouseover", function(d){
+          svg2 .append("line")
+          .attr("class", "extra")
+          .attr("x1", x(d.timestamp))
+          .attr("x2", x(d.timestamp))
+          .attr("y1", y(d.duration))
+          .attr("y2", y(0))
+        })
 
       svg2.selectAll("nonexistant")
         .data(durations.filter(function(d){return d.duration > maxY}))
