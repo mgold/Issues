@@ -27,6 +27,17 @@
       table.table p.best{
         font-weight: bold
       }
+
+    svg circle{
+      fill: #333;
+      opacity: 0.4;
+    }
+
+    svg line{
+      fill: none;
+      stroke: #333;
+      shape-rendering: crispEdges;
+    }
     </style>
     <link rel="stylesheet" type="text/css" href="/ghdata/nv.d3.min.css" />
     <script src="/ghdata/d3.v3.min.js"></script>
@@ -74,47 +85,96 @@
       </div>
     </div>
     <div id="line_plot"><svg></svg></div>
+    <div id="bar_plot"><svg></svg></div>
   </body>
 </html>
 <script>
-  d3.csv(<%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_issues_open.csv\""%>,
-  function(d){return {x: +d.timestamp, y: +d.count, shape: 'circle', open: d.opening == "true", number: +d.number, title: d.title}},
-  function(error, data) {
+  var w = 1000;
+  var h =  300;
+  var marginH = 60;
+
+  var x = d3.time.scale()
+    .range([marginH, marginH+w])
+  var y = d3.scale.linear()
+    .range([h,0])
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .tickFormat(d3.time.format("%m/%y"));
+  var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left");
+
+  var svg1 = d3.select("div#line_plot svg")
+      .attr("width", marginH*2 + w)
+      .attr("height", h)
+
+  var svg2 = d3.select("div#bar_plot svg")
+      .attr("width", marginH*2 + w)
+      .attr("height", h)
+
+  queue()
+    .defer(d3.csv,
+      <%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_issues_open.csv\""%>,
+      function(d){return {timestamp: new Date(+d.timestamp*1000), count: +d.count, open: d.opening == "true", number: +d.number, title: d.title}}
+    )
+    .defer(d3.csv,
+      <%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_durations.csv\""%>,
+      function(d){return {timestamp: new Date(+d.timestamp*1000), duration: +d.duration, is_pr: d.is_pr == "true", number: +d.number, title: d.title}}
+    ).await(function(error, open_at_time, durations) {
     if(error){return console.log(error);}
 
-    var width = 1000, height = 300;
-    var grouped = [{key: "opened", values: []}, {key: "closed", values: []}]
-    for(var i = 0; i < data.length; i++){
-      var item = data[i]
-      var idx = item.open ? 0 : 1
-      grouped[idx].values.push(item)
-    }
-    nv.addGraph(function() {
-      var chart = nv.models.scatterChart()
-      .transitionDuration(350)
-      .color(d3.scale.category10().range())
-      .width(width).height(height);
+    x.domain(d3.extent(open_at_time, function(d){return d.timestamp}));
+    y.domain([0, d3.max(open_at_time, function(d){return d.count})]);
 
-      //Configure how the tooltip looks.
-      chart.tooltipContent(function(_,_,_,obj) {
-        var point = obj.point
-        return '<h3>' + point.number + ': ' + point.title + '</h3>';
-      });
+    svg1.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0,"+ h +")")
+      .call(xAxis);
+    svg1.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate("+marginH+",0)")
+      .call(yAxis);
 
-      //Axis settings
-      chart.xAxis.tickFormat(function (t){return d3.time.format('%x')(new Date(1000*t))})
-      chart.yAxis.tickFormat(d3.format('2'));
+    svg1.selectAll("circle")
+      .data(open_at_time)
+      .enter()
+      .append("circle")
+      //.attr("class", "connect vary")
+      //.filter(function (d) {return d.up != 0 && d.dn != 0;})
+      .attr("cx", function(d) { return x(d.timestamp) })
+      .attr("cy", function(d) { return y(d.count) })
+      .attr("r", 1)
 
-      d3.select('div#line_plot svg')
-      .datum(grouped)
-      .call(chart)
-      .style({ 'width': width, 'height': height });
 
-      nv.utils.windowResize(chart.update);
+/*
+    y = d3.scale.log().range([h,0])
+    yAxis.scale(y)
+*/
+    y.domain([0, d3.max(durations, function(d){return d.duration})]);
+    svg2.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0,"+ h +")")
+      .call(xAxis);
+    svg2.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate("+marginH+",0)")
+      .call(yAxis);
 
-      return chart;
-    });
+    svg2.selectAll("line")
+      .data(durations)
+      .enter()
+      .append("line")
+      .attr("x1", function(d) { return x(d.timestamp) })
+      .attr("x2", function(d) { return x(d.timestamp) })
+      .attr("y1", function(d) { return y(d.duration) })
+      .attr("y2", y(0))
 
   });
+
+    //d3.csv(<%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_durations.csv\""%>,
+    //function(d){return {x: +d.timestamp, y: +d.count, shape: 'circle', open: d.opening == "true", number: +d.number, title: d.title}},
+    //function(error, data) {
+      //if(error){return console.log(error);}
 
 </script>
