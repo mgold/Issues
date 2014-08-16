@@ -7,13 +7,12 @@ require_relative 'issue'
 
 def download(target)
   owner, repo = target.split("/")
-  dir = "data/raw/#{owner}/#{repo}"
+  dir = "private/data/#{owner}/#{repo}"
   FileUtils.mkdir_p dir
   files = Dir.entries(dir).reject{|f| [".", ".."].include? f}
   timestamps = files.map{|f| f.chomp(File.extname(f)).to_i }
   most_recent = Time.at(timestamps.max) rescue nil
   now = Time.now
-  cache_persistence = 3.hours
 
   opts = {state: "all", per_page: 100}
   if most_recent
@@ -56,9 +55,9 @@ end
 
 if __FILE__ == $0
   if ARGV.empty?
-    Dir.foreach("data/raw") do |owner|
+    Dir.foreach("private/data") do |owner|
       next if owner.start_with? '.'
-      Dir.foreach("data/raw/#{owner}") do |repo|
+      Dir.foreach("private/data/#{owner}") do |repo|
         next if repo.start_with? '.'
         target = "#{owner}/#{repo}"
         download target

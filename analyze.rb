@@ -9,7 +9,7 @@ require_relative 'issue'
 
 def analyze(target)
   owner, repo = target.split("/")
-  dir = "data/raw/#{owner}/#{repo}"
+  dir = "private/data/#{owner}/#{repo}"
   filename = Dir.entries(dir).reject{|f| [".", ".."].include? f}.sort.last
   return if filename.nil?
   file_handle = File.open("#{dir}/#{filename}", "r")
@@ -61,7 +61,7 @@ def analyze(target)
   CSV.open("public/data/#{owner}_#{repo}_durations.csv", "w") do |csv|
     csv << ["timestamp", "duration", "is_pr", "number", "title"]
     issues.each do |issue|
-      csv << [issue.opened_at, issue.duration, issue.pr?, issue.duration,issue.title]
+      csv << [issue.opened_at.to_i, issue.duration, issue.pr?, issue.duration,issue.title]
     end
   end
 
@@ -95,9 +95,9 @@ end
 
 if __FILE__ == $0
   if ARGV.empty?
-    Dir.foreach("data/raw") do |owner|
+    Dir.foreach("private/data") do |owner|
       next if owner.start_with? '.'
-      Dir.foreach("data/raw/#{owner}") do |repo|
+      Dir.foreach("private/data/#{owner}") do |repo|
         next if repo.start_with? '.'
         target = "#{owner}/#{repo}"
         $stderr.puts "Analyzing #{target}..."
