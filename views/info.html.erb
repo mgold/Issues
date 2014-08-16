@@ -77,7 +77,7 @@
   </body>
 </html>
 <script>
-  d3.csv(<%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}.csv\""%>,
+  d3.csv(<%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_issues_open.csv\""%>,
   function(d){return {x: +d.timestamp, y: +d.count, shape: 'circle', open: d.opening == "true", number: +d.number, title: d.title}},
   function(error, data) {
     if(error){return console.log(error);}

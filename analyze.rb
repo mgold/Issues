@@ -52,10 +52,19 @@ def analyze(target)
          }
   File.open("public/data/#{owner}_#{repo}.json", 'w'){|f| f.write data.to_json}
 
-  CSV.open("public/data/#{owner}_#{repo}.csv", "w") do |csv|
+  CSV.open("public/data/#{owner}_#{repo}_issues_open.csv", "w") do |csv|
     csv << ["timestamp", "opening", "count", "number", "title"]
     cur_open_sort(issues).each {|row| csv << row}
   end
+
+  issues.sort_by!{|issue| issue.opened_at}
+  CSV.open("public/data/#{owner}_#{repo}_durations.csv", "w") do |csv|
+    csv << ["timestamp", "duration", "is_pr", "number", "title"]
+    issues.each do |issue|
+      csv << [issue.opened_at, issue.duration, issue.pr?, issue.duration,issue.title]
+    end
+  end
+
 end
 
 def cur_open_sort(issues)
