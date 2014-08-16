@@ -61,7 +61,7 @@ def analyze(target)
   CSV.open("public/data/#{owner}_#{repo}_durations.csv", "w") do |csv|
     csv << ["timestamp", "duration", "is_pr", "number", "title"]
     issues.each do |issue|
-      csv << [issue.opened_at.to_i, issue.duration, issue.pr?, issue.duration,issue.title]
+      csv << [issue.opened_at.to_i, issue.duration, issue.pr?, issue.number, issue.title]
     end
   end
 
