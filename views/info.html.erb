@@ -147,7 +147,7 @@
     .defer(d3.csv,
       <%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_durations.csv\""%>,
       function(d){return {timestamp: new Date(+d.timestamp*1000), duration: +d.duration, is_pr: d.is_pr == "true", number: +d.number, title: d.title}}
-    ).await(function(error, open_at_time, durations) {
+    ).await(function(error, open_at_time, durs) {
     if(error){return console.log(error);}
 
     x.domain(d3.extent(open_at_time, function(d){return d.timestamp}));
@@ -166,26 +166,39 @@
       .data(open_at_time)
       .enter()
       .append("circle")
-      //.attr("class", "connect vary")
-      //.filter(function (d) {return d.up != 0 && d.dn != 0;})
       .attr("cx", function(d) { return x(d.timestamp) })
       .attr("cy", function(d) { return y(d.count) })
       .attr("r", 1)
 
+      y.domain([0, d3.max(durs, function(d){return d.duration})]);
+      yAxis.tickFormat(function(d){return d3.format(",.0f")(d/86400)});
+      d3.select("#bar_plot_slider")
+      .style("height", h + "px")
+      .attr("max", y.domain()[1])
+      .attr("value", y.domain()[1])
+      //.on("onchange", function(){console.log(this.value)})
 
-    y.domain([0, d3.max(durations, function(d){return d.duration})]);
-    yAxis.tickFormat(function(d){return d3.format(",.0f")(d/86400)});
-    svg2.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0,"+ h +")")
-      .call(xAxis);
-    svg2.append("g")
-      .attr("class", "y axis")
-      .attr("transform", "translate("+marginH+",0)")
-      .call(yAxis);
+      svg2.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0,"+ h +")")
+        .call(xAxis);
+      svg2.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate("+marginH+",0)")
+        .call(yAxis);
 
-    svg2.style("margin-left", 12)
-    svg2.selectAll("line")
+      durations = durs; // save for later
+      redrawBars(y.domain()[1])
+    });
+
+    function redrawBars(maxY){
+      if (!durations){return}
+      y.domain([0, maxY]);
+      svg2.select("g.y.axis")
+        .call(yAxis);
+
+      svg2.style("margin-left", 12)
+      svg2.selectAll("line")
       .data(durations)
       .enter()
       .append("line")
@@ -195,12 +208,8 @@
       .attr("y2", y(0))
       .attr("svg:title", function(d){ return d.number })
 
-    d3.select("#bar_plot_slider")
-    .style("height", h + "px")
-    .attr("max", y.domain()[1])
-    .attr("value", y.domain()[1])
+  }
 
-  });
 
     //d3.csv(<%="\"/ghdata/data/#{data["meta"]["owner"]}_#{data["meta"]["repo"]}_durations.csv\""%>,
     //function(d){return {x: +d.timestamp, y: +d.count, shape: 'circle', open: d.opening == "true", number: +d.number, title: d.title}},
