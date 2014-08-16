@@ -21,16 +21,34 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="stylesheet" type="text/css" href="/ghdata/bootstrap.min.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       table.table p.best{
         font-weight: bold
       }
 
+    svg {
+      margin-left: 16px;
+    }
     svg circle{
       fill: #333;
       opacity: 0.4;
+    }
+
+    .axis {
+      pointer-events:none;
+    }
+
+    .axis text {
+      font-family: sans-serif;
+      font-size: 10px;
+    }
+
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+      stroke-opacity: .5;
+      shape-rendering: crispEdges;
     }
 
     svg line{
@@ -38,11 +56,15 @@
       stroke: #333;
       shape-rendering: crispEdges;
     }
+
+    input.vertical { -webkit-appearance: slider-vertical; writing-mode: bt-lr;
+     float:left;
+     width: 0px;
+    }
     </style>
-    <link rel="stylesheet" type="text/css" href="/ghdata/nv.d3.min.css" />
     <script src="/ghdata/d3.v3.min.js"></script>
     <script src="/ghdata/queue.v1.min.js"></script>
-    <script src="/ghdata/nv.d3.min.js"></script>
+    <script src="/ghdata/d3.slider.js"></script>
   </head>
   <body>
     <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
@@ -85,13 +107,17 @@
       </div>
     </div>
     <div id="line_plot"><svg></svg></div>
-    <div id="bar_plot"><svg></svg></div>
+    <div id="bar_plot">
+      <input id="bar_plot_slider" type=range min=0 class=vertical orient=vertical>
+      <svg></svg>
+    </div>
+  </div>
   </body>
 </html>
 <script>
   var w = 1000;
   var h =  300;
-  var marginH = 60;
+  var marginH = 40;
 
   var x = d3.time.scale()
     .range([marginH, marginH+w])
@@ -106,12 +132,12 @@
       .orient("left");
 
   var svg1 = d3.select("div#line_plot svg")
-      .attr("width", marginH*2 + w)
-      .attr("height", h)
+      .attr("width", (marginH*2 + w) + "px")
+      .attr("height", 50+h+"px")
 
   var svg2 = d3.select("div#bar_plot svg")
-      .attr("width", marginH*2 + w)
-      .attr("height", h)
+      .attr("width", (marginH*2 + w) + "px")
+      .attr("height", 50+h+"px")
 
   queue()
     .defer(d3.csv,
@@ -147,11 +173,8 @@
       .attr("r", 1)
 
 
-/*
-    y = d3.scale.log().range([h,0])
-    yAxis.scale(y)
-*/
     y.domain([0, d3.max(durations, function(d){return d.duration})]);
+    yAxis.tickFormat(function(d){return d3.format(",.0f")(d/86400)});
     svg2.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0,"+ h +")")
@@ -161,6 +184,7 @@
       .attr("transform", "translate("+marginH+",0)")
       .call(yAxis);
 
+    svg2.style("margin-left", 12)
     svg2.selectAll("line")
       .data(durations)
       .enter()
@@ -169,6 +193,12 @@
       .attr("x2", function(d) { return x(d.timestamp) })
       .attr("y1", function(d) { return y(d.duration) })
       .attr("y2", y(0))
+      .attr("svg:title", function(d){ return d.number })
+
+    d3.select("#bar_plot_slider")
+    .style("height", h + "px")
+    .attr("max", y.domain()[1])
+    .attr("value", y.domain()[1])
 
   });
 
