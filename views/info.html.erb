@@ -134,28 +134,34 @@
 
   var x = d3.time.scale()
     .range([marginH, marginH+w])
-  var y = d3.scale.linear()
+  var y1 = d3.scale.linear()
+    .range([h,0])
+  var y2 = d3.scale.linear()
     .range([h,0])
 
   var xAxis = d3.svg.axis()
       .scale(x)
       .tickFormat(d3.time.format("%m/%y"));
-  var yAxis = d3.svg.axis()
-      .scale(y)
+  var yAxis1 = d3.svg.axis()
+      .scale(y1)
       .orient("left");
+  var yAxis2 = d3.svg.axis()
+      .scale(y2)
+      .orient("left")
+      .tickFormat(function(d){return d3.format(",.0f")(d/86400)})
 
   var svg1 = d3.select("div#line_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
-      //.on("mouseout", svgClear)
+      .on("mouseleave", svgClear)
 
   var svg2 = d3.select("div#bar_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
-      //.on("mouseout", svgClear)
+      .on("mouseleave", svgClear)
 
   function svgClear(){
-    svg1.selectAll("circle.extra").classed("extra", null).attr("r", 1);
+    svg1.selectAll("circle.extra").classed("extra", null).attr("r", 1).style("fill", null);
     svg2.selectAll(".extra").remove();
   }
 
@@ -171,7 +177,8 @@
     if(error){return console.log(error);}
 
     x.domain(d3.extent(open_at_time, function(d){return d.timestamp}));
-    y.domain([0, d3.max(open_at_time, function(d){return d.count})]);
+    y1.domain([0, d3.max(open_at_time, function(d){return d.count})]);
+    y2.domain([0, d3.max(durs, function(d){return d.duration})]);
 
     svg1.append("g")
       .attr("class", "x axis")
@@ -180,22 +187,20 @@
     svg1.append("g")
       .attr("class", "y axis")
       .attr("transform", "translate("+marginH+",0)")
-      .call(yAxis);
+      .call(yAxis1);
 
     svg1.selectAll("circle")
       .data(open_at_time)
       .enter()
       .append("circle")
       .attr("cx", function(d) { return x(d.timestamp) })
-      .attr("cy", function(d) { return y(d.count) })
+      .attr("cy", function(d) { return y1(d.count) })
       .attr("r", 1)
 
-      y.domain([0, d3.max(durs, function(d){return d.duration})]);
-      yAxis.tickFormat(function(d){return d3.format(",.0f")(d/86400)});
       d3.select("#bar_plot_slider")
       .style("height", h + "px")
-      .attr("max", y.domain()[1])
-      .attr("value", y.domain()[1])
+      .attr("max", y2.domain()[1])
+      .attr("value", y2.domain()[1])
 
       svg2.style("margin-left", 12)
       svg2.append("g")
@@ -205,18 +210,18 @@
       svg2.append("g")
         .attr("class", "y axis")
         .attr("transform", "translate("+marginH+",0)")
-        .call(yAxis);
+        .call(yAxis2);
 
       durations = durs; // save for later
-      redrawBars(y.domain()[1])
+      redrawBars(y2.domain()[1])
     });
 
     function redrawBars(maxY){
       if (!durations){return}
       svgClear();
-      y.domain([0, maxY]);
+      y2.domain([0, maxY]);
       svg2.select("g.y.axis")
-        .call(yAxis);
+        .call(yAxis2);
 
       svg2.selectAll(".duration").remove()
       svg2.selectAll("nonexistant")
@@ -227,25 +232,26 @@
         .attr("svg:title", function(d){ return d.number })
         .attr("x1", function(d) { return x(d.timestamp) })
         .attr("x2", function(d) { return x(d.timestamp) })
-        .attr("y1", function(d) { return y(d.duration) })
-        .attr("y2", y(0))
-        .on("mouseover", function(d){
+        .attr("y1", function(d) { return y2(d.duration) })
+        .attr("y2", y2(0))
+        .on("mouseover", function(d2){
           svgClear();
+          svg1.selectAll("circle")
+            .filter(function(d1){return d1 && d2 && d1.number == d2.number})
+            .each(function(d1){
+              svg1.append("circle")
+                .attr("class", "extra")
+                .attr("cx", function(d) { return x(d1.timestamp) })
+                .attr("cy", function(d) { return y1(d1.count) })
+                .attr("r", 5)
+                .style("fill", d1.open ? "#0F0" : null)
+              });
           svg2.append("line")
             .attr("class", "extra")
-            .attr("x1", x(d.timestamp))
-            .attr("x2", x(d.timestamp))
-            .attr("y1", y(d.duration))
-            .attr("y2", y(0));
-          svg1.selectAll("circle")
-            .filter(function(d1){return d1.number == d.number})
-            /*
-            .append("circle")
-            .attr("cx", function(){return d3.select(this).attr("cx")})
-            .attr("cy", function(){return d3.select(this).attr("cy")})
-            */
-            .attr("class", "extra")
-            .attr("r", 5);
+            .attr("x1", x(d2.timestamp))
+            .attr("x2", x(d2.timestamp))
+            .attr("y1", y2(d2.duration))
+            .attr("y2", y2(0));
         });
 
       svg2.selectAll("nonexistant")
@@ -255,7 +261,7 @@
         .attr("class", "duration")
         .attr("svg:title", function(d){ return d.number })
         .attr("cx", function(d) { return x(d.timestamp) })
-        .attr("cy", y(maxY) + 4)
+        .attr("cy", y2(maxY) + 4)
         .attr("r", 2)
 
     }
