@@ -30,10 +30,6 @@
     svg {
       margin-left: 16px;
     }
-    svg circle{
-      fill: #333;
-      opacity: 0.4;
-    }
 
     .axis {
       pointer-events:none;
@@ -60,6 +56,16 @@
     svg line.extra{
       stroke: #F00;
       stroke-opacity: 1;
+    }
+
+    svg circle{
+      fill: #333;
+      opacity: 0.4;
+    }
+
+    svg circle.extra{
+      fill: #F00;
+      opacity: 1;
     }
 
     input.vertical { -webkit-appearance: slider-vertical; writing-mode: bt-lr;
@@ -120,6 +126,8 @@
   </body>
 </html>
 <script>
+  function log(x){console.log(x); return x}
+
   var w = 1000;
   var h =  300;
   var marginH = 40;
@@ -139,16 +147,16 @@
   var svg1 = d3.select("div#line_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
-      .on("mouseout", svgClear)
+      //.on("mouseout", svgClear)
 
   var svg2 = d3.select("div#bar_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
-      .on("mouseout", svgClear)
+      //.on("mouseout", svgClear)
 
   function svgClear(){
-    svg1.selectAll(".extra").remove()
-    svg2.selectAll(".extra").remove()
+    svg1.selectAll("circle.extra").classed("extra", null).attr("r", 1);
+    svg2.selectAll(".extra").remove();
   }
 
   queue()
@@ -222,13 +230,23 @@
         .attr("y1", function(d) { return y(d.duration) })
         .attr("y2", y(0))
         .on("mouseover", function(d){
-          svg2 .append("line")
-          .attr("class", "extra")
-          .attr("x1", x(d.timestamp))
-          .attr("x2", x(d.timestamp))
-          .attr("y1", y(d.duration))
-          .attr("y2", y(0))
-        })
+          svgClear();
+          svg2.append("line")
+            .attr("class", "extra")
+            .attr("x1", x(d.timestamp))
+            .attr("x2", x(d.timestamp))
+            .attr("y1", y(d.duration))
+            .attr("y2", y(0));
+          svg1.selectAll("circle")
+            .filter(function(d1){return d1.number == d.number})
+            /*
+            .append("circle")
+            .attr("cx", function(){return d3.select(this).attr("cx")})
+            .attr("cy", function(){return d3.select(this).attr("cy")})
+            */
+            .attr("class", "extra")
+            .attr("r", 5);
+        });
 
       svg2.selectAll("nonexistant")
         .data(durations.filter(function(d){return d.duration > maxY}))
