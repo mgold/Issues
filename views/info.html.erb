@@ -56,6 +56,7 @@
     svg line.extra{
       stroke: #F00;
       stroke-opacity: 1;
+      stroke-width: 4px;
     }
 
     svg circle{
@@ -196,6 +197,33 @@
       .attr("cx", function(d) { return x(d.timestamp) })
       .attr("cy", function(d) { return y1(d.count) })
       .attr("r", 1)
+      .on("mouseover", function(d1){
+        svgClear();
+        svg1.append("circle")
+          .attr("class", "extra")
+          .attr("cx", function() { return x(d1.timestamp) })
+          .attr("cy", function() { return y1(d1.count) })
+          .attr("r", 5)
+          .style("fill", d1.open ? "#0F0" : null);
+        svg2.selectAll(".duration")
+          .filter(function(d2){return d1 && d2 && d1.number == d2.number})
+          .each(function(d2){
+            if (d2.duration < maxY){
+              svg2.append("line")
+                .attr("class", "extra")
+                .attr("x1", x(d2.timestamp))
+                .attr("x2", x(d2.timestamp))
+                .attr("y1", y2(d2.duration))
+                .attr("y2", y2(0));
+            }else{
+              svg2.append("circle")
+                .attr("class", "extra")
+                .attr("cx", x(d2.timestamp))
+                .attr("cy", y2(maxY) + 4)
+                .attr("r", 4);
+            }
+          })
+      });
 
       d3.select("#bar_plot_slider")
       .style("height", h + "px")
@@ -216,7 +244,8 @@
       redrawBars(y2.domain()[1])
     });
 
-    function redrawBars(maxY){
+    function redrawBars(mY){
+      maxY = mY // save for later
       if (!durations){return}
       svgClear();
       y2.domain([0, maxY]);
@@ -241,8 +270,8 @@
             .each(function(d1){
               svg1.append("circle")
                 .attr("class", "extra")
-                .attr("cx", function(d) { return x(d1.timestamp) })
-                .attr("cy", function(d) { return y1(d1.count) })
+                .attr("cx", function() { return x(d1.timestamp) })
+                .attr("cy", function() { return y1(d1.count) })
                 .attr("r", 5)
                 .style("fill", d1.open ? "#0F0" : null)
               });
