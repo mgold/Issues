@@ -34,7 +34,7 @@
 
       table .side{
         text-align: left;
-        margin: 8px 0px;
+        margin: 2px 0px;
       }
 
       table th.table_spanner{
@@ -46,7 +46,9 @@
       table td, table th.across{
         text-align: right;
         width: 80px;
-        padding: 0;
+      }
+      table td p {
+        margin: 0px;
       }
 
       h1 {
@@ -78,6 +80,11 @@
 
     .axis {
       pointer-events:none;
+    }
+
+    svg text.label {
+      font-family: sans-serif;
+      font-size: 12px;
     }
 
     .axis text {
@@ -114,21 +121,22 @@
       opacity: 1;
     }
 
-    input.vertical { -webkit-appearance: slider-vertical; writing-mode: bt-lr;
-     float:left;
-     width: 0px;
+    input.vertical {
+      -webkit-appearance: slider-vertical; writing-mode: bt-lr;
+      float:left;
+      width: 0px;
+      height: 300px;
     }
-    </style>
-    <script src="/ghdata/d3.v3.min.js"></script>
-    <script src="/ghdata/queue.v1.min.js"></script>
-    <script src="/ghdata/d3.slider.js"></script>
-  </head>
-  <body>
-    <div style="width:100%">
-      <div style="float:left">
-        <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
-        <h2>Updated <%=Duration.new(Time.now - Time.at(data["meta"]["updated"])).format("%h %~h, %m %~m")%> ago</h2>
-      </div>
+  </style>
+  <script src="/ghdata/d3.v3.min.js"></script>
+  <script src="/ghdata/queue.v1.min.js"></script>
+</head>
+<body>
+  <div style="width:100%">
+    <div style="float:left">
+      <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
+      <h2>Updated <%=Duration.new(Time.now - Time.at(data["meta"]["updated"])).format("%h %~h, %m %~m")%> ago</h2>
+    </div>
 
       <p style="overflow: hidden; padding: 8px 16px;">
       Lask week, <b><%=this_week["opened"]%></b> issues were opened, <b><%=this_week["opened_and_closed"]%></b> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
@@ -155,7 +163,7 @@
         <tbody>
           <% %w(this_week last_week last_month).each do |t|%>
             <%="<tr>"%>
-              <%="<td><p class=\"side\">#{data[t]["name"] || t.sub('_', ' ').capitalize}<p></td>"%>
+              <%="<td><p class=\"side\">#{data[t]["name"] || t.sub('_', ' ').capitalize}</p></td>"%>
               <%data["meta"]["percentiles"].each do |i|%>
                 <%=render_percentile(data, t, i)%>
               <%end%>
@@ -167,15 +175,13 @@
     </div>
     <div id="line_plot"><svg></svg></div>
     <div id="bar_plot">
-      <input id="bar_plot_slider" type=range min=604800 class=vertical orient=vertical oninput="redrawBars(value)">
+      <input id="bar_plot_slider" type=range min=864000 class=vertical orient=vertical oninput="redrawBars(value)">
       <svg></svg>
     </div>
   </div>
   </body>
 </html>
 <script>
-  function log(x){console.log(x); return x}
-
   var w = 1000;
   var h =  300;
   var marginH = 40;
@@ -202,11 +208,31 @@
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
       .on("mouseleave", svgClear)
+  svg1.append("text")
+    .text("Number of issues open")
+    .attr("text-anchor", "middle")
+    .attr("class", "label")
+    .attr("transform", "translate(10,"+(h/2)+"), rotate(-90)")
+  svg1.append("text")
+    .text("Date")
+    .attr("text-anchor", "middle")
+    .attr("class", "label")
+    .attr("transform", "translate("+(marginH+w/2)+","+(h+30)+")")
 
   var svg2 = d3.select("div#bar_plot svg")
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
       .on("mouseleave", svgClear)
+  svg2.append("text")
+    .text("Days issue was open")
+    .attr("text-anchor", "middle")
+    .attr("class", "label")
+    .attr("transform", "translate(10,"+(h/2)+"), rotate(-90)")
+  svg2.append("text")
+    .text("Date issue was opened")
+    .attr("text-anchor", "middle")
+    .attr("class", "label")
+    .attr("transform", "translate("+(marginH+w/2)+","+(h+30)+")")
 
   function svgClear(){
     svg1.selectAll("circle.extra").classed("extra", null).attr("r", 1).style("fill", null);
