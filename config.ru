@@ -21,4 +21,8 @@ get '/' do
   "This will be the homepage"
 end
 
+get '/ghdata/*' do |filename|
+    send_file "public/#{filename}"
+end
+
 run Sinatra::Application
