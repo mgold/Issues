@@ -124,11 +124,20 @@
     <script src="/ghdata/d3.slider.js"></script>
   </head>
   <body>
-    <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
-    <h2>Last updated <%=Time.at(data["meta"]["updated"])%></h2>
-    <h3>How long do issues stay open?</h3>
-    <div>
+    <div style="width:100%">
+      <div style="float:left">
+        <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
+        <h2>Updated <%=Duration.new(Time.now - Time.at(data["meta"]["updated"])).format("%h %~h, %m %~m")%> ago</h2>
+      </div>
 
+      <p style="overflow: hidden; padding: 8px 16px;">
+      Lask week, <b><%=this_week["opened"]%></b> issues were opened, <b><%=this_week["opened_and_closed"]%></b> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
+      Of the <b><%=this_week["opened"] - this_week["opened_and_closed"]%></b> still open, <b><%=data["yesterday"]["opened"]%></b> <%=data["yesterday"]["opened"] == 1 ? "was" : "were"%> created in the last 24 hours.
+      <b><%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%></b> older issues were<%=" also" unless older == 0%> closed last week, leaving <b><%=data["now"]["open"]%></b> still open.
+      </p>
+    </div>
+    <div>
+      <h3>How long do issues stay open?</h3>
       <table style="float:left;width:500px">
         <thead>
           <tr>
@@ -154,14 +163,6 @@
           <%end%>
         </tbody>
       </table>
-
-    <p style="float:left; width:400px; margin-left: 50px;">
-    Lask week, <%=this_week["opened"]%> issues were opened, <%=this_week["opened_and_closed"]%> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
-    Of the <%=this_week["opened"] - this_week["opened_and_closed"]%> still open, <%=data["yesterday"]["opened"]%> <%=data["yesterday"]["opened"] == 1 ? "was" : "were"%> created in the last 24 hours.
-    <%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%> older issues were<%=" also" unless older == 0%> closed last week, leaving <%=data["now"]["open"]%> still open.
-    </p>
-
-
 
     </div>
     <div id="line_plot"><svg></svg></div>
