@@ -13,4 +13,12 @@ get '/repo/:user/:repo' do |user, repo|
   erb :info, locals: {data: data}
 end
 
+get '/repo' do
+  [301, {'Location' => '/ghdata'}, []]
+end
+
+get '/' do
+  "This will be the homepage"
+end
+
 run Sinatra::Application
