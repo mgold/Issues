@@ -16,15 +16,15 @@ def download(target)
 
   opts = {state: "all", per_page: 100}
   if most_recent
-    $stderr.puts "Unmarshalling old issues for #{target}..."
+    puts "Unmarshalling old issues for #{target}..."
     file_handle = File.open("#{dir}/#{most_recent.to_i}.marshal", "r")
     issues = Marshal.load(file_handle)
     file_handle.close
     opts.merge! since: most_recent.utc.iso8601
-    $stderr.puts "Downloading recent issues for #{target}..."
+    puts "Downloading recent issues for #{target}..."
   else
     issues = {}
-    $stderr.puts "Downloading all issues for #{target}..."
+    puts "Downloading all issues for #{target}..."
   end
 
   old_issue_count = issues.length
@@ -43,11 +43,10 @@ def download(target)
   end
   new_issue_count = issues.size - old_issue_count
   updated_issue_count = new_or_updated_issue_count - new_issue_count
-  $stderr.puts "#{target}: #{old_issue_count} old, #{new_issue_count} new, #{updated_issue_count} updated, #{issues.size} total."
+  puts "#{target}: #{old_issue_count} old, #{new_issue_count} new, #{updated_issue_count} updated, #{issues.size} total."
 
   unless new_or_updated_issue_count == 0
-    print "#{target} "
-    $stderr.puts "Marshalling updated issues for #{target}..."
+    puts "Marshalling updated issues for #{target}..."
     filename = "#{dir}/#{now.to_i}.marshal"
     File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
   end
@@ -66,5 +65,5 @@ if __FILE__ == $0
   else
     ARGV.each {|target| download target}
   end
-  $stderr.puts "#{Octokit.ratelimit.remaining} remaining GitHub API queries"
+  puts "#{Octokit.ratelimit.remaining} remaining GitHub API queries"
 end
