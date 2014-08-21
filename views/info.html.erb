@@ -29,7 +29,6 @@
 
       table th, table .side{
         font-weight: lighter;
-        font-weight: lighter;
         font-size: 14px;
       }
 
@@ -51,14 +50,25 @@
       }
 
       h1 {
+        font-weight: lighter;
         font-family: sans-serif;
         font-size: 36px;
+        margin: 0px;
       }
       h2 {
         font-family: sans-serif;
-        font-size: 18px;
+        font-weight: lighter;
+        font-size: 14px;
+        margin-top: 0px;
         color: grey;
       }
+      h3 {
+        font-family: sans-serif;
+        font-weight: lighter;
+        margin-bottom: 0px;
+        font-size: 18px;
+      }
+
       p, th {
         font-family: sans-serif;
       }
@@ -116,16 +126,17 @@
   <body>
     <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
     <h2>Last updated <%=Time.at(data["meta"]["updated"])%></h2>
+    <h3>How long do issues stay open?</h3>
     <div>
 
       <table style="float:left;width:500px">
         <thead>
           <tr>
             <th></th>
-            <th colspan="4" class="table_spanner">Percentile</th>
+            <th colspan="4" class="table_spanner">Duration Open by Percentile</th>
           </tr>
           <tr>
-            <th class="side">Closed During:</th>
+            <th class="table_spanner">Closed During</th>
             <th class="across">25</th>
             <th class="across"><small>(Median)</small> 50</th>
             <th class="across">75</th>
@@ -145,10 +156,12 @@
       </table>
 
     <p style="float:left; width:400px; margin-left: 50px;">
-    Lask week, <%=this_week["opened"]%> issues were opened, <%=this_week["opened_and_closed"]%> of which have since been closed.
+    Lask week, <%=this_week["opened"]%> issues were opened, <%=this_week["opened_and_closed"]%> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
     Of the <%=this_week["opened"] - this_week["opened_and_closed"]%> still open, <%=data["yesterday"]["opened"]%> <%=data["yesterday"]["opened"] == 1 ? "was" : "were"%> created in the last 24 hours.
     <%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%> older issues were<%=" also" unless older == 0%> closed last week, leaving <%=data["now"]["open"]%> still open.
     </p>
+
+
 
     </div>
     <div id="line_plot"><svg></svg></div>
