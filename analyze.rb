@@ -17,7 +17,7 @@ def analyze(target)
   file_handle.close
 
   updated_at = filename.chomp(File.extname(filename)).to_i
-  now = Time.now.utc
+  now = Time.at(updated_at)
   one_week_ago  = now - 1.week
   two_weeks_ago = now - 2.week
   last_24_hrs   = now - 1.day
@@ -41,11 +41,16 @@ def analyze(target)
                       opened_and_closed: opened_and_closed_this_week.length,
                       closed: closed_this_week.length,
                       duration_percentiles: duration_percentiles(closed_this_week),
-                      name: "Last 7 Days"},
+                      name: "Last 7 Days",
+                      start_time: one_week_ago.strftime("%Y-%m-%d")},
           last_week: {duration_percentiles: duration_percentiles(closed_last_week),
-                      name: "Week Before That"},
+                      name: "Week Before That",
+                      start_time: two_weeks_ago.strftime("%Y-%m-%d"),
+                      end_time: one_week_ago.strftime("%Y-%m-%d")},
           last_month:{duration_percentiles: duration_percentiles(closed_last_month),
-                      name: Date::MONTHNAMES[now.month-1] || "December"},
+                      name: Date::MONTHNAMES[last_month_start.month],
+                      start_time: last_month_start,
+                      end_time: last_month_end},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
           meta: {owner: owner, repo: repo, updated: updated_at, percentiles:[25,50,75,90]}

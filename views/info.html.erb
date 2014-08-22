@@ -16,6 +16,13 @@
     s += "#{duration.seconds}s" unless duration > 10.minutes
     s.strip
   end
+  def closed_during_header(data,t)
+    label = data[t]["name"] || t.sub('_', ' ').capitalize
+    start = data[t]["start_time"] || "*"
+    fin = data[t]["end_time"] || "*"
+    url = "https://github.com/#{data["meta"]["owner"]}/#{data["meta"]["repo"]}/issues?q=closed%3A#{start}..#{fin}"
+    "<td><a class='side' href='#{url}'>#{label}</a></td>"
+  end
   this_week = data["this_week"]
 %>
 <!DOCTYPE html>
@@ -27,11 +34,19 @@
         font-weight: bold
       }
 
+      table a {
+        font-weight: lighter !important;
+        font-size: 14px !important;
+        text-decoration: none;
+      }
       table th, table .side{
         font-weight: lighter;
         font-size: 14px;
       }
 
+      table .side, #closed_during{
+        width: 105px;
+      }
       table .side{
         text-align: left;
         margin: 2px 0px;
@@ -139,21 +154,22 @@
     </div>
 
       <p style="overflow: hidden; padding: 8px 16px;">
-      Lask week, <b><%=this_week["opened"]%></b> issues were opened, <b><%=this_week["opened_and_closed"]%></b> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
+      Last week, <b><%=this_week["opened"]%></b> issues were opened, <b><%=this_week["opened_and_closed"]%></b> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
       Of the <b><%=this_week["opened"] - this_week["opened_and_closed"]%></b> still open, <b><%=data["yesterday"]["opened"]%></b> <%=data["yesterday"]["opened"] == 1 ? "was" : "were"%> created in the last 24 hours.
       <b><%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%></b> older issues were<%=" also" unless older == 0%> closed last week, leaving <b><%=data["now"]["open"]%></b> still open.
       </p>
     </div>
-    <div>
-      <h3>How long do issues stay open?</h3>
-      <table style="float:left;width:500px">
+    <div style="width:100%; clear:both">
+      <div style="float:left; width:500px; padding: 8px 16px">
+        <h3>How long do issues stay open?</h3>
+        <table>
         <thead>
           <tr>
             <th></th>
             <th colspan="4" class="table_spanner">Duration Open by Percentile</th>
           </tr>
           <tr>
-            <th class="table_spanner">Closed During</th>
+            <th class="table_spanner" id="closed_during">Closed During</th>
             <th class="across">25</th>
             <th class="across"><small>(Median)</small> 50</th>
             <th class="across">75</th>
@@ -163,7 +179,7 @@
         <tbody>
           <% %w(this_week last_week last_month).each do |t|%>
             <%="<tr>"%>
-              <%="<td><p class=\"side\">#{data[t]["name"] || t.sub('_', ' ').capitalize}</p></td>"%>
+              <%=closed_during_header(data,t)%>
               <%data["meta"]["percentiles"].each do |i|%>
                 <%=render_percentile(data, t, i)%>
               <%end%>
@@ -171,6 +187,38 @@
           <%end%>
         </tbody>
       </table>
+    </div>
+
+
+      <div style="overflow: hidden; padding: 8px 16px;">
+      <h3>How long have issues been open?</h3>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th colspan="2" class="table_spanner">Count</th>
+            <th colspan="2" class="table_spanner">Comment Count</th>
+          </tr>
+          <tr>
+            <th class="table_spanner">Age</th>
+            <th class="across">Issues</th>
+            <th class="across">PRs</th>
+            <th class="across">Median</th>
+            <th class="across">Max</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% ["< 1 Week", "1-2 Weeks", "2 Weeks-Month", "> 1 Month"].each do |age|%>
+            <tr>
+              <th class="side"><%=age%></th>
+              <% 4.times do %>
+              <th class="across">123</th>
+            <%end%>
+            </tr>
+          <%end%>
+        </tbody>
+      </table>
+      </div>
 
     </div>
     <div id="line_plot"><svg></svg></div>
