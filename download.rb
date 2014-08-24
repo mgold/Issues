@@ -17,7 +17,8 @@ def download(target)
   opts = {state: "all", per_page: 100}
   if most_recent
     puts "Unmarshalling old issues for #{target}..."
-    file_handle = File.open("#{dir}/#{most_recent.to_i}.marshal", "r")
+    filename_old = "#{dir}/#{most_recent.to_i}.marshal"
+    file_handle = File.open(filename_old, "r")
     issues = Marshal.load(file_handle)
     file_handle.close
     opts.merge! since: most_recent.utc.iso8601
@@ -45,10 +46,12 @@ def download(target)
   updated_issue_count = new_or_updated_issue_count - new_issue_count
   puts "#{target}: #{old_issue_count} old, #{new_issue_count} new, #{updated_issue_count} updated, #{issues.size} total."
 
-  unless new_or_updated_issue_count == 0
+  filename_new = "#{dir}/#{now.to_i}.marshal"
+  if new_or_updated_issue_count > 0
     puts "Marshalling updated issues for #{target}..."
-    filename = "#{dir}/#{now.to_i}.marshal"
-    File.open(filename, 'w') {|f| f.write(Marshal.dump(issues)) }
+    File.open(filename_new, 'w') {|f| f.write(Marshal.dump(issues)) }
+  else
+    FileUtils.ln_s(File.basename(filename_old), filename_new)
   end
 end
 
