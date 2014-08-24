@@ -49,8 +49,8 @@ def analyze(target)
                       end_time: one_week_ago.strftime("%Y-%m-%d")},
           last_month:{duration_percentiles: duration_percentiles(closed_last_month),
                       name: Date::MONTHNAMES[last_month_start.month],
-                      start_time: last_month_start,
-                      end_time: last_month_end},
+                      start_time: last_month_start.strftime("%Y-%m-%d"),
+                      end_time: last_month_end.strftime("%Y-%m-%d")},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
           meta: {owner: owner, repo: repo, updated: updated_at, percentiles:[25,50,75,90]}
