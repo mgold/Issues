@@ -35,9 +35,11 @@
       }
 
       table a {
-        font-weight: lighter !important;
-        font-size: 14px !important;
+        font-family: sans-serif;
+        font-weight: lighter;
+        font-size: 14px;
         text-decoration: none;
+        color: #4183c4;
       }
       table th, table .side{
         font-weight: lighter;
@@ -45,7 +47,7 @@
       }
 
       table .side, #closed_during{
-        width: 105px;
+        width: 115px;
       }
       table .side{
         text-align: left;
@@ -82,7 +84,7 @@
       h3 {
         font-family: sans-serif;
         font-weight: lighter;
-        margin-bottom: 0px;
+        margin: 0px;
         font-size: 18px;
       }
 
@@ -161,7 +163,7 @@
     </div>
     <div style="width:100%; clear:both">
       <div style="float:left; width:500px; padding: 8px 16px">
-        <h3>How long do issues stay open?</h3>
+        <h3>How long did issues stay open?</h3>
         <table>
         <thead>
           <tr>
@@ -221,8 +223,12 @@
       </div>
 
     </div>
-    <div id="line_plot"><svg></svg></div>
+    <div id="line_plot">
+      <h3 style="padding-left: 16px;">How many issues were open on a given date?</h3>
+      <svg></svg>
+    </div>
     <div id="bar_plot">
+      <h3 style="padding-left: 16px;">How long did issues created on a given date stay open?</h3>
       <input id="bar_plot_slider" type=range min=864000 class=vertical orient=vertical oninput="redrawBars(value)">
       <svg></svg>
     </div>
