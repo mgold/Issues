@@ -50,7 +50,7 @@
         width: 115px;
       }
       table .side{
-        text-align: left;
+        text-align: right;
         margin: 2px 0px;
       }
 
@@ -94,6 +94,12 @@
       svg {
         margin-left: 16px;
       }
+
+    svg .loading{
+      font-family: sans-serif;
+      font-size: 72px;
+      fill: #888;
+    }
 
     .axis {
       pointer-events:none;
@@ -266,6 +272,11 @@
       .attr("height", 50+h+"px")
       .on("mouseleave", svgClear)
   svg1.append("text")
+    .text("LOADING")
+    .attr("text-anchor", "middle")
+    .attr("class", "loading")
+    .attr("transform", "translate("+((w+marginH)/2)+","+(2*h/3)+")")
+  svg1.append("text")
     .text("Number of issues open")
     .attr("text-anchor", "middle")
     .attr("class", "label")
@@ -280,6 +291,11 @@
       .attr("width", (marginH*2 + w) + "px")
       .attr("height", 50+h+"px")
       .on("mouseleave", svgClear)
+  svg2.append("text")
+    .text("LOADING")
+    .attr("text-anchor", "middle")
+    .attr("class", "loading")
+    .attr("transform", "translate("+((w+marginH)/2)+","+(2*h/3)+")")
   svg2.append("text")
     .text("Days issue was open")
     .attr("text-anchor", "middle")
@@ -306,6 +322,7 @@
       function(d){return {timestamp: new Date(+d.timestamp*1000), duration: +d.duration, is_pr: d.is_pr == "true", number: +d.number, title: d.title}}
     ).await(function(error, open_at_time, durs) {
     if(error){return console.log(error);}
+    d3.selectAll(".loading").remove();
 
     x.domain(d3.extent(open_at_time, function(d){return d.timestamp}));
     y1.domain([0, d3.max(open_at_time, function(d){return d.count})]);
