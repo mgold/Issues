@@ -18,7 +18,7 @@ get '/repo' do
 end
 
 get '/' do
-  "This will be the homepage"
+  erb :index
 end
 
 get '/ghdata/*' do |filename|

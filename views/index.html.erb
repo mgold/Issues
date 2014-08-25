@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      a {
+        font-family: sans-serif;
+        font-weight: lighter;
+        color: #4183c4;
+        text-decoration: none;
+      }
+      h1 {
+        font-family: sans-serif;
+        font-weight: lighter;
+        font-size: 36px;
+        margin: 0px;
+      }
+      h2 {
+        font-family: sans-serif;
+        font-weight: lighter;
+        font-size: 14px;
+        margin-top: 0px;
+        color: grey;
+      }
+      h3 {
+        font-family: sans-serif;
+        font-weight: lighter;
+        margin: 0px;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <h1>Issues Report</h1>
+      <h2>A dashboard for repo owners trying to keep their issue backlogs in historical perspective.</h2>
+    </div>
+    <div style="text-align: center;">
+      <input id="userrepo" type="text" placeholder="username/repo" method="post" target="/ghdata/new">
+      <%
+        Dir.new("public/data").entries.grep(/\.json$/).map{|f| f.sub(/\.json$/, "").split("_")}.shuffle[0..3].each do |owner, repo|
+      %>
+      <p><a href="/ghdata/repo/<%=owner%>/<%=repo%>"><%=owner%> / <%=repo%></a></p>
+    <% end %>
+  </div>
+</body>
+</html>
+
