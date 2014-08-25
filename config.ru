@@ -2,9 +2,10 @@ require 'rubygems'
 require 'sinatra'
 require 'json'
 
-set :environment, ENV['RACK_ENV'].to_sym
+set :environment, ENV['RACK_ENV'].to_sym if ENV['RACK_ENV']
 Tilt.register Tilt::ERBTemplate, 'html.erb'
 
+#Remove this line to use Sintra for everything; keep it to use Nginx+Passenger
 disable :static, :run
 
 get '/repo/:user/:repo' do |user, repo|
@@ -25,4 +26,4 @@ get '/ghdata/*' do |filename|
     send_file "public/#{filename}"
 end
 
-run Sinatra::Application
+run Sinatra::Application if respond_to? :run
