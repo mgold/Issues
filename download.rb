@@ -30,8 +30,14 @@ def download(target)
 
   old_issue_count = issues.length
   new_or_updated_issue_count = 0
-  additions = Octokit.issues(target, opts)
-  last_response = Octokit.last_response
+  begin
+    additions = Octokit.issues(target, opts)
+    last_response = Octokit.last_response
+  rescue Octokit::NotFound
+    puts "ERROR: #{target} not found! Aborting!"
+    FileUtils.rm_rf "private/data/#{owner}"
+    return
+  end
   loop do
     new_or_updated_issue_count += additions.length
     additions.map!{|sawyer_obj| Issue.new owner, repo, sawyer_obj}
