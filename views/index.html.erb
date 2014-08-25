@@ -26,7 +26,20 @@
         font-family: sans-serif;
         font-weight: lighter;
         margin: 0px;
+        margin-top: 40px;
         font-size: 18px;
+      }
+
+      #userrepo{
+        margin: 0 auto;
+        margin-left: 60px;
+        margin-right: auto;
+        text-align:center;
+        font-size: 24pt;
+        width: 300px;
+      }
+      #userrepo > input{
+        text-align:left;
       }
     </style>
   </head>
@@ -34,10 +47,15 @@
   <body>
     <div>
       <h1>Issues Report</h1>
-      <h2>A dashboard for repo owners trying to keep their issue backlogs in historical perspective.</h2>
+      <h2>A dashboard for repo owners trying to keep their issue backlogs in historical perspective. <a href="https://github.com/mgold/Issues">On GitHub»</a></h2>
     </div>
     <div style="text-align: center;">
-      <input id="userrepo" type="text" placeholder="username/repo" method="post" target="/ghdata/new">
+      <h3>Look up the issue history of a repo</h3>
+      <form name="gotorepo" method="post" target="/">
+        <input id="userrepo" type="text" name="userrepo" placeholder="username/repo"/>
+        <input type="submit" style="visibility: hidden;"/>
+      </form>
+      <h3>Or try one of these</h3>
       <%
         Dir.new("public/data").entries.grep(/\.json$/).map{|f| f.sub(/\.json$/, "").split("_")}.shuffle[0..3].each do |owner, repo|
       %>

@@ -22,6 +22,17 @@ get '/' do
   erb :index
 end
 
+post '/' do
+    return 500 unless params["userrepo"]
+    return [400, {}, ["Input must include exactly one / character"]] unless params["userrepo"].count('/') == 1
+    user, repo = params["userrepo"].split("/")
+    if File.file?("public/data/#{user}_#{repo}.json")
+        return [301, {'Location' => "/repo/#{user}/#{repo}"}, []]
+    end
+    system "ruby download.rb #{user}/#{repo} && ruby analyze.rb #{user}/#{repo} &"
+    erb :wait, locals: {userrepo: "#{user}/#{repo}"}
+end
+
 get '/ghdata/*' do |filename|
     send_file "public/#{filename}"
 end
