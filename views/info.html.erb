@@ -41,7 +41,7 @@
         text-decoration: none;
         color: #4183c4;
       }
-      table a {
+      a {
         font-family: sans-serif;
         font-weight: lighter;
         font-size: 14px;
@@ -248,6 +248,10 @@
       <input id="bar_plot_slider" type=range min=864000 class=vertical orient=vertical oninput="redrawBars(value)">
       <svg></svg>
     </div>
+    <div id="cur_sel">
+      <h3>Current Selection:</h3>
+      <a id="cur_sel_info" style="padding-left: 16px;" target="_blank">(hover over the plots to make a selection)</a>
+    </div>
   </div>
   </body>
 </html>
@@ -353,6 +357,9 @@
       .attr("r", 1)
       .on("mouseover", function(d1){
         svgClear();
+        d3.select("#cur_sel_info")
+          .text("#" + d1.number + ": " + d1.title)
+          .attr("href", "https://github.com/<%=data["meta"]["owner"]%>/<%=data["meta"]["repo"]%>/issues/"+d1.number)
         svg1.append("circle")
           .attr("class", "extra")
           .attr("cx", function() { return x(d1.timestamp) })
@@ -419,6 +426,9 @@
         .attr("y2", y2(0))
         .on("mouseover", function(d2){
           svgClear();
+          d3.select("#cur_sel_info")
+            .text("#" + d2.number + ": " + d2.title)
+            .attr("href", "https://github.com/<%=data["meta"]["owner"]%>/<%=data["meta"]["repo"]%>/issues/"+d2.number)
           svg1.selectAll("circle")
             .filter(function(d1){return d1 && d2 && d1.number == d2.number})
             .each(function(d1){
