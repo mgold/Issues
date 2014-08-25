@@ -28,32 +28,56 @@ def analyze(target)
     last_month_start = Time.local(now.year, now.month-1)
     last_month_end = Time.local(now.year, now.month) -1
   end
+  this_year = Time.local(now.year)
 
   still_open = issues.select{|i| i.open?}
   closed_this_week = issues.select{|i| i.closed_during? one_week_ago}
   opened_this_week = issues.select{|i| i.opened_during? one_week_ago}
   opened_and_closed_this_week = opened_this_week.select{|i| i.closed?}
   opened_yesterday = issues.select{|i| i.opened_during? last_24_hrs}
+  opened_last_week = issues.select{|i| i.opened_during? two_weeks_ago, one_week_ago}
   closed_last_week = issues.select{|i| i.closed_during? two_weeks_ago, one_week_ago}
+  opened_last_month = issues.select{|i| i.opened_during? last_month_start, last_month_end}
   closed_last_month = issues.select{|i| i.closed_during? last_month_start, last_month_end}
+  opened_this_year = issues.select{|i| i.opened_during? this_year}
+  closed_this_year = issues.select{|i| i.closed_during? this_year}
 
   data = {this_week: {opened: opened_this_week.length,
                       opened_and_closed: opened_and_closed_this_week.length,
                       closed: closed_this_week.length,
                       duration_percentiles: duration_percentiles(closed_this_week),
+                      opened_issues: opened_this_week.count{|i| !i.pr?},
+                      opened_pulls: opened_this_week.count{|i| i.pr?},
+                      comments_median: opened_this_week.map{|i| i.comment_count}.median.to_i,
+                      comments_max: opened_this_week.map{|i| i.comment_count}.max,
                       name: "Last 7 Days",
                       start_time: one_week_ago.strftime("%Y-%m-%d")},
           last_week: {duration_percentiles: duration_percentiles(closed_last_week),
+                      opened_issues: opened_last_week.count{|i| !i.pr?},
+                      opened_pulls: opened_last_week.count{|i| i.pr?},
+                      comments_median: opened_last_week.map{|i| i.comment_count}.median.to_i,
+                      comments_max: opened_last_week.map{|i| i.comment_count}.max,
                       name: "Week Before That",
                       start_time: two_weeks_ago.strftime("%Y-%m-%d"),
                       end_time: one_week_ago.strftime("%Y-%m-%d")},
           last_month:{duration_percentiles: duration_percentiles(closed_last_month),
+                      opened_issues: opened_last_month.count{|i| !i.pr?},
+                      opened_pulls: opened_last_month.count{|i| i.pr?},
+                      comments_median: opened_last_month.map{|i| i.comment_count}.median.to_i,
+                      comments_max: opened_last_month.map{|i| i.comment_count}.max,
                       name: Date::MONTHNAMES[last_month_start.month],
                       start_time: last_month_start.strftime("%Y-%m-%d"),
                       end_time: last_month_end.strftime("%Y-%m-%d")},
+          this_year:{duration_percentiles: duration_percentiles(closed_this_year),
+                      opened_issues: opened_this_year.count{|i| !i.pr?},
+                      opened_pulls: opened_this_year.count{|i| i.pr?},
+                      comments_median: opened_this_year.map{|i| i.comment_count}.median.to_i,
+                      comments_max: opened_this_year.map{|i| i.comment_count}.max,
+                      name: "YTD",
+                      start_time: this_year.strftime("%Y-%m-%d")},
           yesterday: {opened: opened_yesterday.length},
           now: {open: still_open.length},
-          meta: {owner: owner, repo: repo, updated: updated_at, percentiles:[25,50,75,90]}
+          meta: {owner: owner, repo: repo, updated: updated_at, percentiles:[25,50,75,90], table_rows: %w[this_week last_week last_month this_year]}
          }
   File.open("public/data/#{owner}_#{repo}.json", 'w'){|f| f.write data.to_json}
 

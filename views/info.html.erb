@@ -179,13 +179,13 @@
           </tr>
         </thead>
         <tbody>
-          <% %w(this_week last_week last_month).each do |t|%>
-            <%="<tr>"%>
+          <% data["meta"]["table_rows"].each do |t|%>
+            <tr>
               <%=closed_during_header(data,t)%>
               <%data["meta"]["percentiles"].each do |i|%>
                 <%=render_percentile(data, t, i)%>
               <%end%>
-              <%="</tr>"%>
+              </tr>
           <%end%>
         </tbody>
       </table>
@@ -202,7 +202,7 @@
             <th colspan="2" class="table_spanner">Comment Count</th>
           </tr>
           <tr>
-            <th class="table_spanner">Age</th>
+            <th class="table_spanner">Opened During</th>
             <th class="across">Issues</th>
             <th class="across">PRs</th>
             <th class="across">Median</th>
@@ -210,12 +210,15 @@
           </tr>
         </thead>
         <tbody>
-          <% ["< 1 Week", "1-2 Weeks", "2 Weeks-Month", "> 1 Month"].each do |age|%>
+          <% data["meta"]["table_rows"].each do |t|%>
             <tr>
-              <th class="side"><%=age%></th>
-              <% 4.times do %>
-                <td><p>123</p></td>
-            <%end%>
+              <th class="side">
+                <%= data[t]["name"] || t.sub('_', ' ').capitalize %>
+              </th>
+              <td><p><%= data[t]["opened_issues"] || 0%></p></td>
+              <td><p><%= data[t]["opened_pulls"] || 0%></p></td>
+              <td><p><%= data[t]["comments_median"] || 0%></p></td>
+              <td><p><%= data[t]["comments_max"] || 0%></p></td>
             </tr>
           <%end%>
         </tbody>
@@ -237,7 +240,7 @@
 </html>
 <script>
   var w = 1000;
-  var h =  300;
+  var h =  260;
   var marginH = 40;
 
   var x = d3.time.scale()
