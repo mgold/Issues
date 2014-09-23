@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      p {
+        font-family: sans-serif;
+        font-weight: lighter;
+        font-size: 16px;
+      }
+      a {
+        font-family: sans-serif;
+        font-weight: lighter;
+        color: #4183c4;
+        text-decoration: none;
+      }
+      h1 {
+        font-family: sans-serif;
+        font-weight: lighter;
+        font-size: 36px;
+        margin: 0px;
+      }
+      h2 {
+        font-family: sans-serif;
+        font-weight: lighter;
+        font-size: 14px;
+        margin-top: 0px;
+        color: grey;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <h1>Sit Tight.</h1>
+      <h2>We're analyzing <b><%=userrepo%></b>.</h2>
+      <p>This will take a few minutes for repos with a lot of history. Wait a bit, then try refreshing the page (no autorefresh, sorry).</p>
+      <p>If <a href="https://github.com/<%=userrepo%>"><%=userrepo%></a> isn't a real GitHub repository, then this action will never complete. Shame on you.</p>
+    </div>
+</body>
+</html>
+
