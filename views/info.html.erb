@@ -171,7 +171,7 @@
       <p style="overflow: hidden; padding: 8px 16px;">
       Last week, <b><%=this_week["opened"]%></b> issues were opened, <b><%=this_week["opened_and_closed"]%></b> of which <%=this_week["opened_and_closed"] == 1 ? "has" : "have"%> since been closed.
       Of the <b><%=this_week["opened"] - this_week["opened_and_closed"]%></b> still open, <b><%=data["yesterday"]["opened"]%></b> <%=data["yesterday"]["opened"] == 1 ? "was" : "were"%> created in the last 24 hours.
-      <b><%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%></b> older issues were<%=" also" unless older == 0%> closed last week, leaving <b><%=data["now"]["open"]%></b> still open.
+      <b><%=older = this_week["closed"] - this_week["opened_and_closed"]; older == 0 ? "No" : older%></b> older <%=older == 1 ? "issue was" : "issues were"%><%=" also" unless older == 0%> closed last week, leaving <b><%=data["now"]["open"]%></b> still open.
       </p>
     </div>
     <div style="width:100%; clear:both">
