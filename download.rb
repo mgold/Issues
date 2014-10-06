@@ -56,8 +56,14 @@ def download(target)
   if new_or_updated_issue_count > 0
     puts "Marshalling updated issues for #{target}..."
     File.open(filename_new, 'w') {|f| f.write(Marshal.dump(issues)) }
+  elsif most_recent
+    puts "Moving old issues for #{target}..."
+    FileUtils.mv(filename_old, filename_new)
+  elsif issues.empty?
+    puts "No issues ever for #{target}."
+    File.open(filename_new, 'w') {|f| f.write(Marshal.dump(issues)) }
   else
-    FileUtils.ln_s(File.basename(filename_old), filename_new)
+    puts "WARNING: Unexpected error condition!"
   end
 end
 
