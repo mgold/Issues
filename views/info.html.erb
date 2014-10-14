@@ -75,7 +75,7 @@
         margin: 0px;
       }
 
-      h1 {
+      h1, h1 a {
         font-weight: lighter;
         font-family: sans-serif;
         font-size: 36px;
@@ -164,7 +164,7 @@
 <body>
   <div style="width:100%">
     <div style="float:left">
-      <h1><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></h1>
+      <h1><a href="https://github.com/<%=data["meta"]["owner"]%>/<%=data["meta"]["repo"]%>"><%=data["meta"]["owner"]%> / <%=data["meta"]["repo"]%></a></h1>
       <h2><a id="back" href="/ghdata">« Back</a> Updated <%=Duration.new(Time.now - Time.at(data["meta"]["updated"])).format("%h %~h, %m %~m")%> ago</h2>
     </div>
 
